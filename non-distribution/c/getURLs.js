@@ -9,30 +9,54 @@ const readline = require('readline');
 const {JSDOM} = require('jsdom');
 const {URL} = require('url');
 
-// 1. Read the base URL from the command-line argument using `process.argv`.
-let baseURL = '';
+let baseURL = process.argv[2];
+if (!baseURL) {
+  console.error('Usage: ./getURLs.js <base_url>');
+  process.exit(1);
+}
 
 if (baseURL.endsWith('index.html')) {
   baseURL = baseURL.slice(0, baseURL.length - 'index.html'.length);
-} else {
+} else if (!baseURL.endsWith('/')) {
   baseURL += '/';
 }
+
+let htmlInput = '';
 
 const rl = readline.createInterface({
   input: process.stdin,
 });
 
 rl.on('line', (line) => {
-  // 2. Read HTML input from standard input (stdin) line by line using the `readline` module.
+  htmlInput += line + '\n';
 });
 
 rl.on('close', () => {
-  // 3. Parse HTML using jsdom
+  try {
+    const dom = new JSDOM(htmlInput);
+    const document = dom.window.document;
 
-  // 4. Find all URLs:
-  //  - select all anchor (`<a>`) elements) with an `href` attribute using `querySelectorAll`.
-  //  - extract the value of the `href` attribute for each anchor element.
-    // 5. Print each absolute URL to the console, one per line.
+    const urlSet = new Set();
+
+    document.querySelectorAll('a[href]').forEach((anchor) => {
+      try {
+        const href = anchor.getAttribute('href');
+        if (href) {
+          const absoluteURL = new URL(href, baseURL);
+          let normalizedURL = absoluteURL.toString();
+          normalizedURL = normalizedURL.replace(/\/$/, '');
+          normalizedURL = normalizedURL.replace(/^http:\/\//, 'https://');
+          urlSet.add(normalizedURL);
+        }
+      } catch (error) {
+      }
+    });
+
+    [...urlSet]
+        .sort()
+        .forEach((url) => console.log(url));
+  } catch (error) {
+    console.error('Error processing HTML:', error);
+    process.exit(1);
+  }
 });
-
-

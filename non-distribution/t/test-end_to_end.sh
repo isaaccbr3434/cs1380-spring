@@ -17,6 +17,9 @@ cat "$T_FOLDER"/d/u.txt > d/urls.txt
 
 EXIT=0
 
+sort "$T_FOLDER"/d/i.txt > /d/actual_output.txt
+
+
 if $DIFF <(sort d/visited.txt) <(sort "$T_FOLDER"/d/v.txt) >&2;
 then
     echo "$0 success: visited urls are identical"
@@ -30,6 +33,7 @@ then
     echo "$0 success: global-index is identical"
 else
     echo "$0 failure: global-index is not identical"
+
     EXIT=1
 fi
 

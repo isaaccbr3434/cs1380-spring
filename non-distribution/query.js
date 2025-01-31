@@ -25,15 +25,44 @@ For example, `execSync(`echo "${input}" | ./c/process.sh`, {encoding: 'utf-8'});
 */
 
 
-const fs = require('fs');
+// const fs = require('fs');
 const {execSync} = require('child_process');
-const path = require('path');
-
+// const path = require('path');
 
 function query(indexFile, args) {
+  try {
+    // Process the query (normalize, remove stopwords, and stem it)
+    const processedQuery = execSync(
+        `echo "${args.join(' ')}" | ./c/process.sh | ./c/stem.js`,
+        {encoding: 'utf-8'},
+    ).trim();
+
+    if (!processedQuery) {
+      console.error('Query contains only stopwords or invalid terms');
+      process.exit(1);
+    }
+
+    try {
+      // Search for the processed query in the global index
+      const result = execSync(`grep "${processedQuery}" ${indexFile}`, {encoding: 'utf-8'}).trim();
+
+      if (result) {
+        console.log(result);
+      } else {
+        console.log('No matches found');
+      }
+    } catch (grepError) {
+      console.log('No matches found');
+    }
+  } catch (error) {
+    console.error('Error processing query:', error.message);
+    process.exit(1);
+  }
 }
 
-const args = process.argv.slice(2); // Get command-line arguments
+// Get command-line arguments
+const args = process.argv.slice(2);
+
 if (args.length < 1) {
   console.error('Usage: ./query.js [query_strings...]');
   process.exit(1);

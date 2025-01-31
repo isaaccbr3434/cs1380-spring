@@ -1,0 +1,2 @@
+banana | example.com/banana 3
+cherry | example.com/cherry 1
