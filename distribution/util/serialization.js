@@ -1,3 +1,4 @@
+
 /*
     Checklist:
 
@@ -14,7 +15,6 @@
 */
 
 let distribution = require("@brown-ds/distribution");
-
 
 
 function serialize(object, seen = new WeakMap()) {
