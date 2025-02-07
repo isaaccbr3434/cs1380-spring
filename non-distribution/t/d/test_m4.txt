@@ -1,0 +1,4 @@
+apple | example.com/apple 3
+banana | example.com/banana 4
+cherry | example.com/cherry 1
+date | example.com/date 1

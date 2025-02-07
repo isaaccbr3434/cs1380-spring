@@ -1,0 +1,15 @@
+content | 1 | https://example.com/test/doc2.html
+discover | 1 | https://example.com/test/doc2.html
+discover content | 1 | https://example.com/test/doc2.html
+discover content level | 1 | https://example.com/test/doc2.html
+content level | 1 | https://example.com/test/doc2.html
+content level explor | 1 | https://example.com/test/doc2.html
+explor | 1 | https://example.com/test/doc2.html
+explor possibl | 1 | https://example.com/test/doc2.html
+level | 1 | https://example.com/test/doc2.html
+level explor | 1 | https://example.com/test/doc2.html
+level explor possibl | 1 | https://example.com/test/doc2.html
+possibl | 1 | https://example.com/test/doc2.html
+possibl level | 1 | https://example.com/test/doc2.html
+possibl level right | 1 | https://example.com/test/doc2.html
+right | 1 | https://example.com/test/doc2.html

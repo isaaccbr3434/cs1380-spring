@@ -48,6 +48,8 @@
         <h1>Welcome to CS1380 simple links</h1>
         <p>Check out <a href="level_2a/index.html">Some stuff</a>.</p>
         <p>Check out <a href="level_2b/index.html">Some more stuff</a>.</p>
+        <p>Explore <a href="level_2c/index.html">Even more stuff</a>.</p>
+
         <p>This is a testing paragraph</p>
 
     </div>
