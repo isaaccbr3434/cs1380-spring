@@ -36,3 +36,37 @@ I created mock data similar to the ones provided in the /d folder for writing ad
 > How many lines of code do you think it will take to build the fully distributed, scalable version of your search engine? Add that number to the `"dloc"` portion of package.json, and justify your answer below.
 
 I guess that it will take around 10,000 lines of code to build the full distributed scalable version of the search engine. I base my estimate on previous projects where I have used tools such as Spring Boot which took a few thousand lines of code.
+
+
+# M1: Serialization / Deserialization
+
+
+## Summary
+
+My implementation comprises two major software components which include the serialization and deserialization compoentns  totaling around 160 lines of code. Key challenges included serializing and deserializing circular objects specifically dealing with the references to themselves as well as dealing with circular arrays and functions.
+
+
+## Correctness & Performance Characterization
+
+
+> Describe how you characterized the correctness and performance of your implementation
+
+
+*Correctness*: I wrote 5 tests and they test the following cases 
+1. sample test
+2. tests an empty object structure is maintained after serializing and deserializing it
+3. tests an object with nested structure is correctly returned after being serialized and deserialized
+4. tests that an object with different data types is correctly serialized and deserialized
+5. tests that an object with functions has its structure maintained after being serialized and deserialized
+
+
+
+related to serialization and deserialization
+I also tested the performance of my program by including within my testing file the peformance library. I placed a timer for all serialization and deserialization operations that checks the amount of time for each operation and then computes the average at the end and logs it using console.log. In this way I have statistics for the average serialization time across all tests, the average deserialization time across all tests, and the serialization and deserialization times for each indivudal test as well as the averages for the combined for all tests and for each individual test. I ran this in my local development environment through the terminal as well as the EC2 AWS node to check performance across different environments.
+
+
+
+
+
+*Performance*: The latency of various subsystems is described in the `"latency"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json.
+
