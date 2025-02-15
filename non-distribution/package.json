@@ -35,6 +35,17 @@
       "dev": [257],
       "aws": [241],
       "gs": []
+    }, "latency": {
+      "dev": {"Average serialize time (ms)": 0.0180,
+      "Average deserialize time (ms)": 0.0109
+      
+    },
+      "aws": {
+
+      "Average serialize time (ms)": 0.0756,
+      "Average deserialize time (ms)" : 0.0423
+    
+    }
     },
     "dloc": 10000
   }

@@ -1,6 +1,7 @@
 const http = require('http');
 const url = require('url');
 const log = require('../util/log');
+const routes = require('./routes'); 
 
 
 /*
@@ -16,14 +17,70 @@ const start = function(callback) {
 
     // Write some code...
 
+    if (req.method !== 'PUT') {
+      res.writeHead(405, { 'Content-Type': 'text/plain' });
+      return res.end('Only PUT requests are allowed\n');
+    }
+
 
     /*
       The path of the http request will determine the service to be used.
       The url will have the form: http://node_ip:node_port/service/method
     */
 
+    const parsedUrl = url.parse(req.url, true);
+
+    const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
+
+    if (pathSegments.length < 2) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Invalid request format. Expected /service/method' }));
+    }
+
+    const [serviceName, methodName] = pathSegments;
+
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk;
+    });
+
+
+
 
     // Write some code...
+
+    req.on('end', () => {
+      try {
+        const parsedBody = JSON.parse(body);
+        const args = parsedBody.args || [];
+
+        log(`Received request for ${serviceName}.${methodName} with args:`, args);
+
+        routes.get(serviceName, (error, service) => {
+          if (error || !service || typeof service[methodName] !== 'function') {
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: `Service '${serviceName}' or method '${methodName}' not found` }));
+          }
+
+          service[methodName](...args, (err, result) => {
+            if (err) {
+              res.writeHead(500, { 'Content-Type': 'application/json' });
+              return res.end(JSON.stringify({ error: err.message }));
+            }
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(result));
+          });
+        });
+      } catch (error) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid JSON format' }));
+      }
+    });
+  });
+
+
+
 
 
     /*
@@ -48,13 +105,11 @@ const start = function(callback) {
 
       // Write some code...
 
-      const serviceName = service;
 
 
 
         // Write some code...
 
-  });
 
 
   // Write some code...
