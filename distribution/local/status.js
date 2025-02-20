@@ -1,15 +1,14 @@
-const id = require('../util/id');
 const log = require('../util/log');
 
 const status = {};
 
-status.spawn = require('@brown-ds/distribution/distribution/local/status').spawn(); 
-status.stop = require('@brown-ds/distribution/distribution/local/status').stop(); 
+status.spawn = require('@brown-ds/distribution/distribution/local/status').spawn; 
+status.stop = require('@brown-ds/distribution/distribution/local/status').stop; 
 
 
 global.moreStatus = {
-  sid: id.getSID(global.nodeConfig),
-  nid: id.getNID(global.nodeConfig),
+  sid: global.distribution.util.id.getSID(global.nodeConfig),
+  nid: global.distribution.util.id.getNID(global.nodeConfig),
   counts: 0,
   ip: global.nodeConfig.ip || '127.0.0.1',  // Default value
   port: global.nodeConfig.port || 8000 

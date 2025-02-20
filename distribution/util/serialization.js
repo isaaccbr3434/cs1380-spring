@@ -15,6 +15,10 @@
 */
 
 let distribution = require("@brown-ds/distribution");
+let bserialize = require("@brown-ds/distribution/distribution/util/serialization").serialize;
+let bdeserialize = require("@brown-ds/distribution/distribution/util/serialization").deserialize;
+
+
 
 
 function serialize(object, seen = new WeakMap()) {
@@ -164,6 +168,6 @@ function deserialize(serialized) {
 
 
 module.exports = {
-  serialize: serialize,
-  deserialize: deserialize,
+  serialize: bserialize,
+  deserialize: bdeserialize,
 };

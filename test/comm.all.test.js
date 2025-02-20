@@ -3,7 +3,6 @@ const id = distribution.util.id;
 
 const mygroupConfig = {gid: 'mygroup'};
 const mygroupGroup = {};
-jest.setTimeout(30000); // 30 seconds timeout for all tests in this file
 
 
 /*

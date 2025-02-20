@@ -3,9 +3,9 @@
 const services = {};
 const global = {}; // Ensure global exists in case it's not already defined
 global.toLocal = global.toLocal || {};
-const externalget = require('@brown-ds/distribution/distribution/local/routes').get();
-const externalput = require('@brown-ds/distribution/distribution/local/routes').put();
-const externalrem = require('@brown-ds/distribution/distribution/local/routes').rem();
+const externalget = require('@brown-ds/distribution/distribution/local/routes').get;
+const externalput = require('@brown-ds/distribution/distribution/local/routes').put;
+const externalrem = require('@brown-ds/distribution/distribution/local/routes').rem;
 
 
 

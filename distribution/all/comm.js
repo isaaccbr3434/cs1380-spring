@@ -12,7 +12,7 @@
  * @return {object}
  */
 
-const externalcomm = require('@brown-ds/distribution/distribution/all/all').comm()
+const externalcomm = require('@brown-ds/distribution/distribution/all/all').comm
 
 
 
