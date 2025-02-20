@@ -1,0 +1,2 @@
+date | example.com/date 1
+apple | example.com/apple 1

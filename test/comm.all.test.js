@@ -3,6 +3,8 @@ const id = distribution.util.id;
 
 const mygroupConfig = {gid: 'mygroup'};
 const mygroupGroup = {};
+jest.setTimeout(30000); // 30 seconds timeout for all tests in this file
+
 
 /*
    This is necessary since we can not
@@ -78,6 +80,8 @@ test('(2 pts) all.comm.send(status.get(random))', (done) => {
 
 beforeAll((done) => {
   // First, stop the nodes if they are running
+  console.log("Starting beforeAll setup...");
+
   const remote = {service: 'status', method: 'stop'};
 
   remote.node = n1;
@@ -101,6 +105,8 @@ beforeAll((done) => {
   });
 
   const startNodes = () => {
+    console.log("Setting up group mapping...");
+
     mygroupGroup[id.getSID(n1)] = n1;
     mygroupGroup[id.getSID(n2)] = n2;
     mygroupGroup[id.getSID(n3)] = n3;
@@ -118,10 +124,12 @@ beforeAll((done) => {
 
 
     // Now, start the nodes listening node
+    console.log('staring server')
     distribution.node.start((server) => {
       localServer = server;
 
       // Start the nodes
+      console.log('node 1 about to start')
       distribution.local.status.spawn(n1, (e, v) => {
         distribution.local.status.spawn(n2, (e, v) => {
           distribution.local.status.spawn(n3, (e, v) => {

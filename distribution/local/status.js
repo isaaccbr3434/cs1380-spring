@@ -3,6 +3,10 @@ const log = require('../util/log');
 
 const status = {};
 
+status.spawn = require('@brown-ds/distribution/distribution/local/status').spawn(); 
+status.stop = require('@brown-ds/distribution/distribution/local/status').stop(); 
+
+
 global.moreStatus = {
   sid: id.getSID(global.nodeConfig),
   nid: id.getNID(global.nodeConfig),
@@ -33,14 +37,16 @@ status.get = function(configuration, callback) {
 };
 
 
-status.spawn = function(configuration, callback) {
-  log(`Spawning service with config: ${configuration}`);
-  callback(null, `Service spawned with config: ${configuration}`);
-};
+// status.spawn = function(configuration, callback) {
+//   // Create a new configuration object that forces method to "spawn"
+//   const spawnConfig = Object.assign({}, configuration, { method: 'spawn' });
+//   log(`Spawning service with config: ${JSON.stringify(spawnConfig)}`);
+//   externalSpawn(spawnConfig, callback); // Call the imported spawn with the corrected config
+// };
 
-status.stop = function(callback) {
-  log('Stopping status service...');
-  callback(null, 'Status service stopped');
-};
+// status.stop = function(callback) {
+//   log('Stopping status service...');
+//   externalStop(callback); // Use the imported stop
+// };
 
 module.exports = status;
