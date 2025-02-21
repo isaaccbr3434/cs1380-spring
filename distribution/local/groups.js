@@ -3,10 +3,10 @@ const { id } = require("../util/util");
 const groups = {};
 
 
-groups.get = require('@brown-ds/distribution/distribution/local/groups').add;
-groups.put = require('@brown-ds/distribution/distribution/local/groups').del;
-groups.del = require('@brown-ds/distribution/distribution/local/groups').get;
-groups.add = require('@brown-ds/distribution/distribution/local/groups').put;
+groups.get = require('@brown-ds/distribution/distribution/local/groups').get;
+groups.put = require('@brown-ds/distribution/distribution/local/groups').put;
+groups.del = require('@brown-ds/distribution/distribution/local/groups').del;
+groups.add = require('@brown-ds/distribution/distribution/local/groups').add;
 groups.rem = require('@brown-ds/distribution/distribution/local/groups').rem;
 
 

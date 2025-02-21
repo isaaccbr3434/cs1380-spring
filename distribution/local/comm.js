@@ -1,5 +1,5 @@
 const http = require('http');
-const net = require('net');  // Import this for connection checking
+const { serialize, deserialize } = require("@brown-ds/distribution/distribution/util/serialization");
 
 
 
@@ -28,73 +28,71 @@ const externalSend = require('@brown-ds/distribution/distribution/local/comm').s
 
 
 function send(message, remote, callback = () => {}) {
-    if (!remote || !remote.node || !remote.node.ip || !remote.node.port) {
-        callback(new Error('Invalid remote node information'), null);
-        return;
+    // Validate that the remote target information is provided.
+    if (
+      !remote ||
+      !remote.node ||
+      !remote.node.ip ||
+      !remote.node.port ||
+      !remote.service ||
+      !remote.method
+    ) {
+      return callback(new Error("Invalid remote target information"), null);
     }
-
-    const ip = remote.node.ip;
-    const port = remote.node.port;
-    const service = remote.service;
-    const method = remote.method;
+  
+    // Use provided gid or default to "local"
     const gid = remote.gid || "local";
-    const path = `/${gid}/${service}/${method}`;
-    const payload = JSON.stringify({ args: message });
-    
-    console.log(`Sending request to ${ip}:${port}${path} with yurrr: ${payload}`);
-    
-    // Skip isNodeAlive check and handle connection errors in the request
+    // Build the request path as /<gid>/<service>/<method>
+    const path = `/${gid}/${remote.service}/${remote.method}`;
+  
+    // Serialize the message payload using the provided serialization function.
+    let payload;
+    try {
+      payload = serialize(message);
+    } catch (err) {
+      return callback(new Error("Failed to serialize message: " + err.message), null);
+    }
+  
+    // Set up HTTP options for a PUT request.
     const options = {
-        hostname: ip,
-        port: port,
-        path: path,
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(payload),
-        },
-        timeout: 2000,
+      hostname: remote.node.ip,
+      port: remote.node.port,
+      path: path,
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      },
+      timeout: 5000 // Timeout can be adjusted as needed.
     };
-    
+  
+    // Create and send the HTTP request.
     const req = http.request(options, (res) => {
-        let data = '';
-        
-        res.on('data', (chunk) => {
-            data += chunk;
-        });
-        
-        res.on('end', () => {
-            try {
-                if (res.statusCode >= 400) {
-                    return callback(new Error(`HTTP Error ${res.statusCode}: ${data}`), null);
-                }
-                
-                const response = JSON.parse(data);
-                if (response.error) {
-                    return callback(new Error(response.error), null);
-                }
-                
-                callback(null, response);
-            } catch (error) {
-                callback(new Error('Invalid JSON response from server'), null);
-            }
-        });
-    });
-    
-    req.on('error', (error) => {
-        // Critical fix: For ECONNREFUSED errors when stopping nodes, 
-        // treat it as a successful operation (node already stopped)
-        if (error.code === 'ECONNREFUSED' && method === 'stop') {
-            console.log(`Node at ${ip}:${port} is already stopped.`);
-            callback(null, { status: 'success', message: 'Node already stopped' });
-        } else {
-            console.error('Request failed:', error);
-            callback(new Error(`Network error: ${error.message}`), null);
+      let data = "";
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+      res.on("end", () => {
+        let result;
+        try {
+          result = deserialize(data);
+        } catch (err) {
+          return callback(new Error("Failed to deserialize response: " + err.message), null);
         }
+        // If the result is an Error object, pass it to the callback.
+        if (result instanceof Error) {
+          return callback(result, null);
+        }
+        callback(null, result);
+      });
     });
-    
+  
+    req.on("error", (err) => {
+      callback(new Error("Network error: " + err.message), null);
+    });
+  
     req.write(payload);
     req.end();
-}
-
-module.exports = { send: externalSend};
+  }
+  
+  module.exports = { send: send};

@@ -1,5 +1,7 @@
 const log = require('../util/log');
 let createRPC = require('@brown-ds/distribution/distribution/util/wire').createRPC;
+let Async = require('@brown-ds/distribution/distribution/util/wire').toAsync;
+
 
 
 
@@ -33,5 +35,5 @@ function toAsync(func) {
 
 module.exports = {
   createRPC: createRPC,
-  toAsync: toAsync,
+  toAsync: Async,
 };

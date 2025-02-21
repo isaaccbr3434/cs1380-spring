@@ -14,7 +14,6 @@
     10. Serialize native functions
 */
 
-let distribution = require("@brown-ds/distribution");
 let bserialize = require("@brown-ds/distribution/distribution/util/serialization").serialize;
 let bdeserialize = require("@brown-ds/distribution/distribution/util/serialization").deserialize;
 

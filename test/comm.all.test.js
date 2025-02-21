@@ -11,6 +11,8 @@ const mygroupGroup = {};
    This is because the process that node is
    running in is the actual jest process
 */
+
+
 let localServer = null;
 
 const n1 = {ip: '127.0.0.1', port: 9001};
@@ -19,6 +21,11 @@ const n3 = {ip: '127.0.0.1', port: 9003};
 const n4 = {ip: '127.0.0.1', port: 9004};
 const n5 = {ip: '127.0.0.1', port: 9005};
 const n6 = {ip: '127.0.0.1', port: 9006};
+
+
+// test.only('test' , (done) => {
+//   done()
+// })
 
 test('(2 pts) all.comm.send(status.get(nid))', (done) => {
   const nids = Object.values(mygroupGroup).map((node) => id.getNID(node));
@@ -130,12 +137,19 @@ beforeAll((done) => {
       // Start the nodes
       console.log('node 1 about to start')
       distribution.local.status.spawn(n1, (e, v) => {
+        console.log('node 2 about to start')
         distribution.local.status.spawn(n2, (e, v) => {
+          console.log('node 3 about to start')
           distribution.local.status.spawn(n3, (e, v) => {
+            console.log('node 4 about to start')
             distribution.local.status.spawn(n4, (e, v) => {
+              console.log('node 5 about to start')
               distribution.local.status.spawn(n5, (e, v) => {
+                console.log('node 6 about to start')
                 distribution.local.status.spawn(n6, (e, v) => {
+                  console.log('node 7 about to start')
                   groupInstantiation();
+                  console.log('group instantiation failed')
                 });
               });
             });

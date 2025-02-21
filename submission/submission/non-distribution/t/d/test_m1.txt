@@ -1,2 +1,0 @@
-apple | example.com/apple 2
-banana | example.com/banana 1
