@@ -1,9 +1,11 @@
 const http = require('http');
 const url = require('url');
 const log = require('../util/log');
-const routes = require('./routes'); 
-
+const routes = global.distribution.local.routes; 
 const nodeStart = require('@brown-ds/distribution/distribution/local/node').start;
+
+let serialize = require("@brown-ds/distribution/distribution/util/serialization").serialize;
+let deserialize = require("@brown-ds/distribution/distribution/util/serialization").deserialize;
 
 
 /*
@@ -12,161 +14,108 @@ const nodeStart = require('@brown-ds/distribution/distribution/local/node').star
     After your node has booted, you should call the callback.
 */
 
-// if (!global.nodeConfig) {
-//   global.nodeConfig = {
-//     ip: '127.0.0.1',
-//     port: 1234 // default port if not provided
-//   };
-// }
-// if (!global.distribution) {
-//   global.distribution = {};
-// }
-// if (!global.distribution.node) {
-//   global.distribution.node = {};
-// }
+if (!global.nodeConfig) {
+  global.nodeConfig = {
+    ip: '127.0.0.1',
+    port: 1234 // default port if not provided
+  };
+}
+if (!global.distribution) {
+  global.distribution = {};
+}
+if (!global.distribution.node) {
+  global.distribution.node = {};
+}
 
 
-// const start = function(callback) {
-//   const server = http.createServer((req, res) => {
-//     /* Your server will be listening for PUT requests. */
+const start = function(callback) {
+  const server = http.createServer((req, res) => {
+    // Ensure server only accepts PUT requests
+    if (req.method !== 'PUT') {
+        res.writeHead(405, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Only PUT requests are allowed' }));
+    }
 
-//     // Write some code...
-
-//     if (req.method !== 'PUT') {
-//       res.writeHead(405, { 'Content-Type': 'text/plain' });
-//       return res.end('Only PUT requests are allowed\n');
-//     }
-
-
-//     /*
-//       The path of the http request will determine the service to be used.
-//       The url will have the form: http://node_ip:node_port/service/method
-//     */
-
-//     const parsedUrl = url.parse(req.url, true);
-
-//     const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
-
-//     if (pathSegments.length < 3) {
-//       res.writeHead(400, { 'Content-Type': 'application/json' });
-//       return res.end(JSON.stringify({ error: 'Invalid request format. Expected /<gid>/<service>/<method>' }));
-//     }
-
-//     const [gid, serviceName, methodName] = pathSegments;
-
-//     let body = '';
-//     req.on('data', chunk => {
-//       body += chunk;
-//     });
+    // Parse URL path
+    const parsedUrl = url.parse(req.url, true);
+    const pathSegments = parsedUrl.pathname.split('/').filter(Boolean);
 
 
+    if (pathSegments.length < 3) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ error: 'Invalid request format. Expected /<gid>/<service>/<method>' }));
+    }
+
+    const [gid, serviceName, methodName] = pathSegments;
+
+    console.log(`Received request: /${gid}/${serviceName}/${methodName}`);
 
 
-//     // Write some code...
+    let body = '';
+    req.on('data', (chunk) => {
+        body += chunk;
+    });
 
-//     req.on('end', () => {
-//       try {
-//         const parsedBody = JSON.parse(body);
-//         const args = parsedBody.args || [];
+    req.on('end', () => {
+        let parsedBody;
+        try {
+            parsedBody = deserialize(body);
+            if (typeof parsedBody !== "object") {  
+              parsedBody = JSON.parse(body);
+          }
+        } catch (error) {
+            res.writeHead(400, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: 'Invalid JSON format' }));
+        }
 
-//         log(`Received request for ${gid}.${serviceName}.${methodName} with args:`, args);
+        const args = parsedBody || [];
 
-//         // Retrieve service using gid
-//         routes.get({ service: serviceName, gid }, (error, service) => {
-//             if (error || !service || typeof service[methodName] !== 'function') {
-//                 res.writeHead(404, { 'Content-Type': 'application/json' });
-//                 return res.end(JSON.stringify({ error: `Service '${serviceName}' or method '${methodName}' not found in group '${gid}'` }));
-//             }
+        
+        routes.get({ service: serviceName, gid }, (error, service) => {
+          if (error || !service) {
+            console.warn(`⚠️ Service '${serviceName}' not found under '${gid}' via routes.get().`);
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: `Service '${serviceName}' not found in group '${gid}'` }));
+          }
+  
+          if (typeof service[methodName] !== "function") {
+            console.warn(`⚠️ Method '${methodName}' not found in service '${serviceName}'.`);
+            res.writeHead(404, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({ error: `Method '${methodName}' not found in service '${serviceName}'` }));
+          }
+  
+          console.log(`Calling ${gid}.${serviceName}.${methodName}(${JSON.stringify(args)})`);
+  
+          service[methodName](...args, (err, result) => {
+            let response = { e: {}, v: {} };
+            if (err) {
+              response.e = err.message ? { error: err.message } : err;
+            } else {
+              response.v = result;
+            }
+  
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(serialize(response));
+          });
+        });
+      });
+    });
 
-//             // Call the service method with args and handle the response
-//             service[methodName](...args, (err, result) => {
-//                 if (err) {
-//                     res.writeHead(500, { 'Content-Type': 'application/json' });
-//                     return res.end(JSON.stringify({ error: err.message }));
-//                 }
+server.listen(global.nodeConfig.port, global.nodeConfig.ip, () => {
+    console.log(`Server running at http://${global.nodeConfig.ip}:${global.nodeConfig.port}/`);
+    global.distribution.node.server = server;
+    callback(server);
+});
 
-//                 res.writeHead(200, { 'Content-Type': 'application/json' });
-//                 res.end(JSON.stringify(result));
-//             });
-//         });
-//     } catch (error) {
-//         res.writeHead(400, { 'Content-Type': 'application/json' });
-//         res.end(JSON.stringify({ error: 'Invalid JSON format' }));
-//     }
-// });
-// });
+server.on('error', (error) => {
+    console.error(`Server error: ${error}`);
+    if (error.code === 'EADDRINUSE') {
+        console.error(`Port ${global.nodeConfig.port} is already in use. Cannot start server.`);
+    }
+    if (typeof callback === 'function') {
+        callback(error);
+    }
+});
+}
 
-
-
-
-
-
-//     /*
-
-//       A common pattern in handling HTTP requests in Node.js is to have a
-//       subroutine that collects all the data chunks belonging to the same
-//       request. These chunks are aggregated into a body variable.
-
-//       When the req.on('end') event is emitted, it signifies that all data from
-//       the request has been received. Typically, this data is in the form of a
-//       string. To work with this data in a structured format, it is often parsed
-//       into a JSON object using JSON.parse(body), provided the data is in JSON
-//       format.
-
-//       Our nodes expect data in JSON format.
-//   */
-
-//     // Write some code...
-
-//     let body = [];
-
-//     req.on('data', (chunk) => {
-//     });
-
-//     req.on('end', () => {
-
-//       /* Here, you can handle the service requests.
-//       Use the local routes service to get the service you need to call.
-//       You need to call the service with the method and arguments provided in the request.
-//       Then, you need to serialize the result and send it back to the caller.
-//       */
-
-//       // Write some code...
-
-
-
-
-//         // Write some code...
-
-
-
-//   /*
-//     Your server will be listening on the port and ip specified in the config
-//     You'll be calling the `callback` callback when your server has successfully
-//     started.
-
-//     At some point, we'll be adding the ability to stop a node
-//     remotely through the service interface.
-//   */
-
-//   server.listen(global.nodeConfig.port, global.nodeConfig.ip, () => {
-//     log(`Server running at http://${global.nodeConfig.ip}:${global.nodeConfig.port}/`);
-//     global.distribution.node.server = server;
-//     callback(server);
-//   });
-
-//   server.on('error', (error) => {
-//     log(`Server error: ${error}`);
-//     if (error.code === 'EADDRINUSE') {
-//       log(`Port ${global.nodeConfig.port} is already in use. Cannot start server.`);
-//     }
-//     // Notify any listening processes that server failed to start
-//     if (typeof callback === 'function') {
-//       callback(error);
-//     }
-//   });
-// }
-
-module.exports = {
-  start: nodeStart,
-};
+module.exports = { start: start };

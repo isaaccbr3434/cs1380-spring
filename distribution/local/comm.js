@@ -68,31 +68,53 @@ function send(message, remote, callback = () => {}) {
   
     // Create and send the HTTP request.
     const req = http.request(options, (res) => {
-      let data = "";
-      res.on("data", (chunk) => {
-        data += chunk;
-      });
-      res.on("end", () => {
-        let result;
-        try {
-          result = deserialize(data);
-        } catch (err) {
-          return callback(new Error("Failed to deserialize response: " + err.message), null);
-        }
-        // If the result is an Error object, pass it to the callback.
-        if (result instanceof Error) {
-          return callback(result, null);
-        }
-        callback(null, result);
-      });
+        let data = "";
+        res.on("data", (chunk) => {
+          data += chunk;
+        });
+        res.on("end", () => {
+          let result;
+          try {
+            result = deserialize(data);
+          } catch (err) {
+            return callback(new Error("Failed to deserialize response: " + err.message), null);
+          }
+
+         
+
+          if (Array.isArray(result) && result.every(el => Array.isArray(el) && el.length === 2)) {
+            const e = {};
+            const v = {};
+
+            result.forEach(([err, value], index) => {
+              if (err) {
+                e[index] = err; 
+              } else {
+                v[index] = value;
+              }
+            });
+
+            return callback({}, v);
+          }
+
+          if (result && typeof result === "object" && ("e" in result) && ("v" in result)) {
+            return callback(null, result.v || {});
+          }
+
+          console.log('got it 2')
+
+          callback(result[0], result[1] || {});
+        });
     });
+    
   
-    req.on("error", (err) => {
-      callback(new Error("Network error: " + err.message), null);
-    });
+      req.on("error", (err) => {
+        callback(new Error("Network error: " + err.message), {});
+      });
+    
+      req.write(payload);
+      req.end();
+    }
   
-    req.write(payload);
-    req.end();
-  }
   
   module.exports = { send: send};

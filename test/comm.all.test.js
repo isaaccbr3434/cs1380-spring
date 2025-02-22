@@ -29,9 +29,13 @@ const n6 = {ip: '127.0.0.1', port: 9006};
 
 test('(2 pts) all.comm.send(status.get(nid))', (done) => {
   const nids = Object.values(mygroupGroup).map((node) => id.getNID(node));
-  const remote = {service: 'status', method: 'get'};
+  const remote = { service: 'status', method: 'get' };
 
   distribution.mygroup.comm.send(['nid'], remote, (e, v) => {
+    // Log the expected and received results
+    console.log("Expected node IDs:", nids);
+    console.log("Received values:", Object.values(v));
+
     expect(e).toEqual({});
     try {
       expect(Object.values(v).length).toBe(nids.length);
@@ -43,7 +47,7 @@ test('(2 pts) all.comm.send(status.get(nid))', (done) => {
   });
 });
 
-test('(2 pts) local.comm.send(all.status.get(nid))', (done) => {
+test.only('(2 pts) local.comm.send(all.status.get(nid))', (done) => {
   const nids = Object.values(mygroupGroup).map((node) => id.getNID(node));
   const remote = {node: n5, service: 'groups', method: 'put'};
 
@@ -53,9 +57,15 @@ test('(2 pts) local.comm.send(all.status.get(nid))', (done) => {
 
     // from local node, run mygroup.status.get() on n5 via send()
     distribution.local.comm.send(['nid'], remote, (e, v) => {
+      console.log(Object.values(v));
+
+
+
       expect(e).toEqual({});
 
       try {
+        console.log(Object.values(v));
+        console.log(nids);
         expect(Object.values(v).length).toBe(nids.length);
         expect(Object.values(v)).toEqual(expect.arrayContaining(nids));
         done();
@@ -124,6 +134,11 @@ beforeAll((done) => {
       // Create the groups
       distribution.local.groups
           .put(mygroupConfig, mygroupGroup, (e, v) => {
+            console.log("✅ Groups created:", v);
+            console.log("🔎 Verifying registered services in global.distribution...");
+            
+            // Inspect global.distribution to verify services are registered correctly
+            console.log(distribution.mygroup);
             done();
           });
     };
@@ -137,15 +152,15 @@ beforeAll((done) => {
       // Start the nodes
       console.log('node 1 about to start')
       distribution.local.status.spawn(n1, (e, v) => {
-        console.log('node 2 about to start')
+        // console.log('node 2 about to start')
         distribution.local.status.spawn(n2, (e, v) => {
-          console.log('node 3 about to start')
+          // console.log('node 3 about to start')
           distribution.local.status.spawn(n3, (e, v) => {
-            console.log('node 4 about to start')
+            // console.log('node 4 about to start')
             distribution.local.status.spawn(n4, (e, v) => {
-              console.log('node 5 about to start')
+              // console.log('node 5 about to start')
               distribution.local.status.spawn(n5, (e, v) => {
-                console.log('node 6 about to start')
+                // console.log('node 6 about to start')
                 distribution.local.status.spawn(n6, (e, v) => {
                   console.log('node 7 about to start')
                   groupInstantiation();

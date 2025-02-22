@@ -2,6 +2,8 @@ const log = require('../util/log');
 
 const status = {};
 
+status.get = require('@brown-ds/distribution/distribution/local/status').get;
+
 status.spawn = require('@brown-ds/distribution/distribution/local/status').spawn; 
 status.stop = require('@brown-ds/distribution/distribution/local/status').stop; 
 
@@ -14,26 +16,26 @@ global.moreStatus = {
   port: global.nodeConfig.port || 8000 
 };
 
-status.get = function(configuration, callback) {
-  callback = callback || function() { };
-  // TODO: implement remaining local status items
+// status.get = function(configuration, callback) {
+//   callback = callback || function() { };
+//   // TODO: implement remaining local status items
 
-  if (configuration in global.moreStatus){
-    callback(null, global.moreStatus[configuration]);
-    return;
-  }
+//   if (configuration in global.moreStatus){
+//     callback(null, global.moreStatus[configuration]);
+//     return;
+//   }
 
 
-  if (configuration === 'heapTotal') {
-    callback(null, process.memoryUsage().heapTotal);
-    return;
-  }
-  if (configuration === 'heapUsed') {
-    callback(null, process.memoryUsage().heapUsed);
-    return;
-  }
-  callback(new Error('Status key not found'));
-};
+//   if (configuration === 'heapTotal') {
+//     callback(null, process.memoryUsage().heapTotal);
+//     return;
+//   }
+//   if (configuration === 'heapUsed') {
+//     callback(null, process.memoryUsage().heapUsed);
+//     return;
+//   }
+//   callback(new Error('Status key not found'));
+// };
 
 
 // status.spawn = function(configuration, callback) {
